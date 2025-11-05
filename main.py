@@ -29,7 +29,7 @@ if DATABASE_URL:
             logger.info("資料庫連線成功！開始初始化資料表...")
 
             # 1. 安裝 pgvector 擴充套件
-            connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            
 
             # 2. 建立 RAG 知識庫表格
             # (R5 心法：VARCHAR(1536) 假設我們用 OpenAI 的 1536 維向量)
