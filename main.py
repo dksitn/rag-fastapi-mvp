@@ -1,3 +1,4 @@
+# V1.0 M2.1: 修正 pgvector 環境錯誤
 from fastapi import FastAPI
 import uvicorn
 import os
