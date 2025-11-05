@@ -2,3 +2,5 @@ fastapi
 uvicorn
 psycopg2-binary
 sqlalchemy
+# ... (你原有的 fastapi, uvicorn, psycopg2-binary, sqlalchemy)
+sentence-transformers
