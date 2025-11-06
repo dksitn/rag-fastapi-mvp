@@ -101,7 +101,7 @@ def add_knowledge(item: KnowledgeItem):
             # R5 心法：使用 "參數化查詢" (params) 來防止 SQL 注入
             # R2 提醒：pgvector 接受向量的 "字串" 格式
             connection.execute(
-                text("INSERT INTO knowledge_chunks (content, embedding) VALUES (:content, :embedding)"),
+                text("INSERT INTO knowledge_chunks (content, embedding) VALUES (:content, :embedding::VECTOR)"),
                 params={
                     "content": item.content,
                     "embedding": str(vector) 
@@ -115,7 +115,47 @@ def add_knowledge(item: KnowledgeItem):
     except Exception as e:
         logger.error(f"寫入知識時失敗: {e}")
         raise HTTPException(status_code=500, detail=f"伺服器內部錯誤: {e}")
+# --- [模組 5] R6 核心任務：建立 "R (檢索)" API ---
+@app.get("/query")
+def query_knowledge(question: str): # R6: 這次我們用 "Query Parameter" (查詢參數)
+    if not engine or not embedding_model:
+        raise HTTPException(status_code=503, detail="資料庫或 AI 模型尚未準備就緒")
 
+    if not question:
+        raise HTTPException(status_code=400, detail="請提供 'question' 參數")
+
+    try:
+        # 1. R6 核心：將「問題」轉換為「問題向量」
+        logger.info(f"正在為問題編碼: {question[:20]}...")
+        query_vector = embedding_model.encode(question).tolist()
+
+        # 2. R5 核心：執行「魔法 SQL」 (相似度搜尋)
+        logger.info("正在資料庫中執行向量搜尋...")
+        results = []
+        with engine.connect() as connection:
+            # R5 心法：執行 <-> (餘弦距離) 運算子
+            sql_query = text(f"""
+            SELECT content, embedding <=> :query_vector AS distance
+            FROM knowledge_chunks
+            ORDER BY distance
+            LIMIT 3
+            """)
+
+            result_proxy = connection.execute(
+                sql_query,
+                params={
+                    "query_vector": str(query_vector) # R5: 同樣，pgvector 接受字串
+                }
+            )
+
+            results = [row._asdict() for row in result_proxy] # R6: 將 SQL 結果轉為 dict 列表
+
+        logger.info(f"檢索到 {len(results)} 筆相關知識。")
+        return {"message": "檢索成功", "results": results}
+
+    except Exception as e:
+        logger.error(f"檢索知識時失敗: {e}")
+        raise HTTPException(status_code=500, detail=f"伺服器內部錯誤: {e}")
 # --- (uvicorn 啟動部分保持不變) ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
