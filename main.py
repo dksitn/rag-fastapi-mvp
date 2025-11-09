@@ -1,4 +1,5 @@
 # V1.0 M6: 最終版 - RAG (檢索-增強-生成) 完整流程
+# V1.0 FINAL RETRY: pgvector is back online!
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
