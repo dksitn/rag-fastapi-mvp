@@ -2,7 +2,8 @@ fastapi
 uvicorn
 psycopg2-binary
 sqlalchemy
-# ... (你原有的 fastapi, uvicorn, psycopg2-binary, sqlalchemy)
-sentence-transformers
-# ... (你原有的 fastapi, uvicorn, psycopg2-binary, sqlalchemy, sentence-transformers)
 openai
+sentence-transformers
+# R6 優化：指定只安裝 CPU 版本的 Pytorch，減少體積
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
